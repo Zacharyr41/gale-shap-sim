@@ -1,0 +1,25 @@
+# Gale-Shapley Algorithm Simulator Configuration
+# This file contains default configuration values that can be overridden via environment variables
+# Environment variable format: GALESHAPLEY_<PROPERTY_NAME> (e.g., GALESHAPLEY_MAXITERATIONS)
+
+galeshapley:
+  # Maximum number of iterations for the algorithm (default: Integer.MAX_VALUE)
+  # Environment variable: GALESHAPLEY_MAXITERATIONS
+  maxIterations: 2147483647
+  
+  # Enable detailed logging during algorithm execution (default: false)
+  # Environment variable: GALESHAPLEY_ENABLEDETAILEDLOGGING
+  enableDetailedLogging: false
+  
+  # Track iteration metrics during execution (default: true)
+  # Environment variable: GALESHAPLEY_TRACKITERATIONMETRICS
+  trackIterationMetrics: true
+  
+  # Global seed for random number generation (default: null - uses system time)
+  # Environment variable: GALESHAPLEY_GLOBALSEED
+  globalSeed: null
+
+# Spring configuration
+spring:
+  application:
+    name: gale-shapley-simulator

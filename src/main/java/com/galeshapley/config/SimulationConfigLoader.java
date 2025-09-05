@@ -20,25 +20,45 @@ public class SimulationConfigLoader {
     
     public SimulationConfig loadFromFile(String filePath) throws IOException {
         YamlConfig yamlConfig = YamlConfig.loadFromFile(filePath);
-        return buildSimulationConfig(yamlConfig);
+        return buildSimulationConfig(yamlConfig, null);
+    }
+    
+    public SimulationConfig loadFromFile(String filePath, RuntimeOptions runtimeOptions) throws IOException {
+        YamlConfig yamlConfig = YamlConfig.loadFromFile(filePath);
+        return buildSimulationConfig(yamlConfig, runtimeOptions);
     }
     
     public SimulationConfig loadFromFile(File file) throws IOException {
         YamlConfig yamlConfig = YamlConfig.loadFromFile(file);
-        return buildSimulationConfig(yamlConfig);
+        return buildSimulationConfig(yamlConfig, null);
+    }
+    
+    public SimulationConfig loadFromFile(File file, RuntimeOptions runtimeOptions) throws IOException {
+        YamlConfig yamlConfig = YamlConfig.loadFromFile(file);
+        return buildSimulationConfig(yamlConfig, runtimeOptions);
     }
     
     public SimulationConfig loadFromStream(InputStream stream) throws IOException {
         YamlConfig yamlConfig = YamlConfig.loadFromStream(stream);
-        return buildSimulationConfig(yamlConfig);
+        return buildSimulationConfig(yamlConfig, null);
+    }
+    
+    public SimulationConfig loadFromStream(InputStream stream, RuntimeOptions runtimeOptions) throws IOException {
+        YamlConfig yamlConfig = YamlConfig.loadFromStream(stream);
+        return buildSimulationConfig(yamlConfig, runtimeOptions);
     }
     
     public SimulationConfig loadFromString(String yamlContent) throws IOException {
         YamlConfig yamlConfig = YamlConfig.loadFromString(yamlContent);
-        return buildSimulationConfig(yamlConfig);
+        return buildSimulationConfig(yamlConfig, null);
     }
     
-    private SimulationConfig buildSimulationConfig(YamlConfig yamlConfig) {
+    public SimulationConfig loadFromString(String yamlContent, RuntimeOptions runtimeOptions) throws IOException {
+        YamlConfig yamlConfig = YamlConfig.loadFromString(yamlContent);
+        return buildSimulationConfig(yamlConfig, runtimeOptions);
+    }
+    
+    private SimulationConfig buildSimulationConfig(YamlConfig yamlConfig, RuntimeOptions runtimeOptions) {
         YamlConfig.SimulationData simData = yamlConfig.getSimulation();
         
         // Create proposers
@@ -62,6 +82,12 @@ public class SimulationConfigLoader {
         proposerMap.values().forEach(builder::addProposer);
         proposeeMap.values().forEach(builder::addProposee);
         
+        // Initialize seed generator if global seed is provided
+        Random seedGenerator = null;
+        if (runtimeOptions != null && runtimeOptions.getGlobalSeed() != null) {
+            seedGenerator = new Random(runtimeOptions.getGlobalSeed());
+        }
+        
         // Set proposer preferences
         for (Map.Entry<String, PreferenceConfig> entry : simData.getProposerPreferences().entrySet()) {
             Proposer proposer = proposerMap.get(entry.getKey());
@@ -70,7 +96,7 @@ public class SimulationConfigLoader {
             }
             
             PreferenceConfig prefConfig = entry.getValue();
-            List<String> rawPreferences = resolvePreferences(prefConfig, proposeeMap.keySet());
+            List<String> rawPreferences = resolvePreferences(prefConfig, proposeeMap.keySet(), seedGenerator);
             
             // Find position of empty set (if any) in original preference list
             int emptySetPosition = rawPreferences.indexOf("∅");
@@ -102,7 +128,7 @@ public class SimulationConfigLoader {
             }
             
             PreferenceConfig prefConfig = entry.getValue();
-            List<String> rawPreferences = resolvePreferences(prefConfig, proposerMap.keySet());
+            List<String> rawPreferences = resolvePreferences(prefConfig, proposerMap.keySet(), seedGenerator);
             
             // Find position of empty set (if any) in original preference list
             int emptySetPosition = rawPreferences.indexOf("∅");
@@ -132,14 +158,18 @@ public class SimulationConfigLoader {
     /**
      * Resolve preferences from either explicit list or generator configuration.
      */
-    private List<String> resolvePreferences(PreferenceConfig config, Set<String> candidateIds) {
+    private List<String> resolvePreferences(PreferenceConfig config, Set<String> candidateIds, Random seedGenerator) {
         if (config.isExplicit()) {
             return config.getExplicit();
         } else {
             PreferenceConfig.GeneratorConfig genConfig = config.getGenerator();
             if (genConfig.isRandom()) {
                 Random random;
-                if (genConfig.getSeed() != null) {
+                if (seedGenerator != null) {
+                    // Use global seed to generate individual seed for this agent
+                    random = new Random(seedGenerator.nextLong());
+                } else if (genConfig.getSeed() != null) {
+                    // Fall back to individual seed if no global seed
                     random = new Random(genConfig.getSeed());
                 } else {
                     random = new Random();
