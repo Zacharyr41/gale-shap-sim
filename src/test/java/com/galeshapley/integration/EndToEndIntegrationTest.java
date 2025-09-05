@@ -3,6 +3,8 @@ package com.galeshapley.integration;
 import com.galeshapley.algorithm.GaleShapleyAlgorithm;
 import com.galeshapley.config.SimulationConfig;
 import com.galeshapley.config.SimulationConfigLoader;
+import com.galeshapley.model.Proposer;
+import com.galeshapley.model.Proposee;
 import com.galeshapley.observer.StatisticsObserver;
 import org.junit.jupiter.api.Test;
 
@@ -15,34 +17,8 @@ class EndToEndIntegrationTest {
     @Test
     void shouldRunCompleteSimulationFromYamlToMetrics() throws IOException {
         // Given: A YAML configuration with known stable matching scenario
-        String yamlConfig = 
-            "simulation:\n" +
-            "  proposers:\n" +
-            "    - id: m1\n" +
-            "      name: Alice\n" +
-            "    - id: m2\n" +
-            "      name: Bob\n" +
-            "    - id: m3\n" +
-            "      name: Charlie\n" +
-            "  proposees:\n" +
-            "    - id: w1\n" +
-            "      name: Diana\n" +
-            "    - id: w2\n" +
-            "      name: Eve\n" +
-            "    - id: w3\n" +
-            "      name: Fiona\n" +
-            "  proposerPreferences:\n" +
-            "    m1: [w1, w2, w3]  # Alice prefers Diana > Eve > Fiona\n" +
-            "    m2: [w2, w1, w3]  # Bob prefers Eve > Diana > Fiona\n" +
-            "    m3: [w3, w2, w1]  # Charlie prefers Fiona > Eve > Diana\n" +
-            "  proposeePreferences:\n" +
-            "    w1: [m1, m2, m3]  # Diana prefers Alice > Bob > Charlie\n" +
-            "    w2: [m2, m3, m1]  # Eve prefers Bob > Charlie > Alice\n" +
-            "    w3: [m3, m1, m2]  # Fiona prefers Charlie > Alice > Bob\n";
-        
-        // When: Loading configuration and running algorithm
         SimulationConfigLoader loader = new SimulationConfigLoader();
-        SimulationConfig config = loader.loadFromString(yamlConfig);
+        SimulationConfig config = loader.loadFromFile("src/test/resources/stable-matching-config.yaml");
         
         GaleShapleyAlgorithm algorithm = new GaleShapleyAlgorithm(
             config.getProposerPreferences(),
@@ -101,34 +77,8 @@ class EndToEndIntegrationTest {
     @Test
     void shouldHandleAsymmetricMatchingScenario() throws IOException {
         // Given: More proposers than proposees (some will remain unmatched)
-        String yamlConfig = 
-            "simulation:\n" +
-            "  proposers:\n" +
-            "    - id: m1\n" +
-            "      name: Adam\n" +
-            "    - id: m2\n" +
-            "      name: Ben\n" +
-            "    - id: m3\n" +
-            "      name: Carl\n" +
-            "    - id: m4\n" +
-            "      name: Dave\n" +
-            "  proposees:\n" +
-            "    - id: w1\n" +
-            "      name: Anna\n" +
-            "    - id: w2\n" +
-            "      name: Beth\n" +
-            "  proposerPreferences:\n" +
-            "    m1: [w1, w2]\n" +
-            "    m2: [w1, w2]\n" +
-            "    m3: [w2, w1]\n" +
-            "    m4: [w1, w2]\n" +
-            "  proposeePreferences:\n" +
-            "    w1: [m2, m1, m3, m4]  # Anna prefers Ben > Adam > Carl > Dave\n" +
-            "    w2: [m1, m3, m2, m4]  # Beth prefers Adam > Carl > Ben > Dave\n";
-        
-        // When: Running the simulation
         SimulationConfigLoader loader = new SimulationConfigLoader();
-        SimulationConfig config = loader.loadFromString(yamlConfig);
+        SimulationConfig config = loader.loadFromFile("src/test/resources/asymmetric-matching-config.yaml");
         
         GaleShapleyAlgorithm algorithm = new GaleShapleyAlgorithm(
             config.getProposerPreferences(),
@@ -160,27 +110,8 @@ class EndToEndIntegrationTest {
     @Test 
     void shouldProduceConsistentResultsAcrossMultipleRuns() throws IOException {
         // Given: A deterministic YAML configuration
-        String yamlConfig = 
-            "simulation:\n" +
-            "  proposers:\n" +
-            "    - id: m1\n" +
-            "      name: John\n" +
-            "    - id: m2\n" +
-            "      name: Mike\n" +
-            "  proposees:\n" +
-            "    - id: w1\n" +
-            "      name: Sarah\n" +
-            "    - id: w2\n" +
-            "      name: Lisa\n" +
-            "  proposerPreferences:\n" +
-            "    m1: [w1, w2]\n" +
-            "    m2: [w2, w1]\n" +
-            "  proposeePreferences:\n" +
-            "    w1: [m1, m2]\n" +
-            "    w2: [m2, m1]\n";
-        
         SimulationConfigLoader loader = new SimulationConfigLoader();
-        SimulationConfig config = loader.loadFromString(yamlConfig);
+        SimulationConfig config = loader.loadFromFile("src/test/resources/consistent-results-config.yaml");
         
         // When: Running the algorithm multiple times
         GaleShapleyAlgorithm.AlgorithmResult firstResult = null;
@@ -211,5 +142,50 @@ class EndToEndIntegrationTest {
                 assertThat(stats.getTotalRejections()).isEqualTo(firstStats.getTotalRejections());
             }
         }
+    }
+    
+    @Test
+    void shouldHandleEmptySetInPreferenceOrdering() throws IOException {
+        // Given: A YAML configuration with empty set in preference ordering
+        SimulationConfigLoader loader = new SimulationConfigLoader();
+        SimulationConfig config = loader.loadFromFile("src/test/resources/empty-set-config.yaml");
+        
+        GaleShapleyAlgorithm algorithm = new GaleShapleyAlgorithm(
+            config.getProposerPreferences(),
+            config.getProposeePreferences(),
+            config.getEmptySetPreferences()
+        );
+        
+        StatisticsObserver statisticsObserver = new StatisticsObserver();
+        algorithm.addObserver(statisticsObserver);
+        
+        GaleShapleyAlgorithm.AlgorithmResult result = algorithm.execute();
+        
+        // Then: The person who preferred being single should remain unmatched
+        assertThat(result.getFinalMatching().getUnmatchedProposers())
+            .hasSize(1)
+            .satisfies(unmatched -> {
+                Proposer singlePreferrer = unmatched.iterator().next();
+                assertThat(singlePreferrer.getName()).isEqualTo("SinglePreferrer");
+            });
+        
+        // And: The algorithm should still achieve the best possible matching for others
+        assertThat(result.getFinalMatching().getMatchCount()).isEqualTo(1);
+        assertThat(result.getFinalMatching().getAllMatches())
+            .hasSize(1)
+            .satisfies(matches -> {
+                var regularGuy = matches.keySet().stream()
+                    .filter(p -> p.getName().equals("RegularGuy"))
+                    .findFirst().orElseThrow();
+                assertThat(matches.get(regularGuy).getName()).isEqualTo("Alice");
+            });
+        
+        // Verify one proposee remains unmatched as well
+        assertThat(result.getFinalMatching().getUnmatchedProposees())
+            .hasSize(1)
+            .satisfies(unmatched -> {
+                Proposee unmatchedProposee = unmatched.iterator().next();
+                assertThat(unmatchedProposee.getName()).isEqualTo("Betty");
+            });
     }
 }

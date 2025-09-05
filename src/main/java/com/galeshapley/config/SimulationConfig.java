@@ -8,12 +8,14 @@ public class SimulationConfig {
     private final Set<Proposee> proposees;
     private final Map<Proposer, PreferenceList<Proposee>> proposerPreferences;
     private final Map<Proposee, PreferenceList<Proposer>> proposeePreferences;
+    private final Map<Proposer, Integer> emptySetPreferences;
     
     private SimulationConfig(Builder builder) {
         this.proposers = Collections.unmodifiableSet(new HashSet<>(builder.proposers));
         this.proposees = Collections.unmodifiableSet(new HashSet<>(builder.proposees));
         this.proposerPreferences = Collections.unmodifiableMap(new HashMap<>(builder.proposerPreferences));
         this.proposeePreferences = Collections.unmodifiableMap(new HashMap<>(builder.proposeePreferences));
+        this.emptySetPreferences = Collections.unmodifiableMap(new HashMap<>(builder.emptySetPreferences));
         validate();
     }
     
@@ -30,7 +32,8 @@ public class SimulationConfig {
                 throw new IllegalStateException("Proposer " + proposer.getName() + " has no preferences");
             }
             PreferenceList<Proposee> prefs = proposerPreferences.get(proposer);
-            if (!prefs.getPreferences().containsAll(proposees)) {
+            // Skip validation for proposers with empty set preferences (they don't need all proposees)
+            if (!emptySetPreferences.containsKey(proposer) && !prefs.getPreferences().containsAll(proposees)) {
                 throw new IllegalStateException("Proposer " + proposer.getName() + 
                     " does not have preferences for all proposees");
             }
@@ -64,6 +67,10 @@ public class SimulationConfig {
         return proposeePreferences;
     }
     
+    public Map<Proposer, Integer> getEmptySetPreferences() {
+        return emptySetPreferences;
+    }
+    
     public static Builder builder() {
         return new Builder();
     }
@@ -73,6 +80,7 @@ public class SimulationConfig {
         private final Set<Proposee> proposees = new HashSet<>();
         private final Map<Proposer, PreferenceList<Proposee>> proposerPreferences = new HashMap<>();
         private final Map<Proposee, PreferenceList<Proposer>> proposeePreferences = new HashMap<>();
+        private final Map<Proposer, Integer> emptySetPreferences = new HashMap<>();
         
         public Builder addProposer(Proposer proposer) {
             proposers.add(proposer);
@@ -107,6 +115,14 @@ public class SimulationConfig {
                 throw new IllegalArgumentException("Proposee " + proposee + " not in configuration");
             }
             proposeePreferences.put(proposee, new PreferenceList<>(proposee, preferences));
+            return this;
+        }
+        
+        public Builder setEmptySetPreference(Proposer proposer, int position) {
+            if (!proposers.contains(proposer)) {
+                throw new IllegalArgumentException("Proposer " + proposer + " not in configuration");
+            }
+            emptySetPreferences.put(proposer, position);
             return this;
         }
         
