@@ -1,0 +1,17 @@
+simulation:
+  proposers:
+    - id: m1
+      name: John
+    - id: m2
+      name: Mike
+  proposees:
+    - id: w1
+      name: Sarah
+    - id: w2
+      name: Lisa
+  proposerPreferences:
+    m1: [w1, w2]
+    m2: [w2, w1]
+  proposeePreferences:
+    w1: [m1, m2]
+    w2: [m2, m1]
