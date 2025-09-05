@@ -95,9 +95,14 @@ public class Matching {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Matching{\n");
-        proposerToProposee.forEach((proposer, proposee) -> 
-            sb.append("  ").append(proposer.getName()).append(" <-> ")
-              .append(proposee.getName()).append("\n"));
+        proposerToProposee.forEach((proposer, proposee) -> {
+            sb.append("  ").append(proposer.getName());
+            if (proposee instanceof EmptySet) {
+                sb.append(" -> single\n");
+            } else {
+                sb.append(" <-> ").append(proposee.getName()).append("\n");
+            }
+        });
         if (!unmatchedProposers.isEmpty()) {
             sb.append("  Unmatched Proposers: ");
             unmatchedProposers.forEach(p -> sb.append(p.getName()).append(" "));
