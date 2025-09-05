@@ -98,7 +98,11 @@ public class SimulationConfigLoader {
                 throw new IllegalArgumentException("Unknown proposee ID in preferences: " + entry.getKey());
             }
             
+            // Find position of empty set (if any) in original preference list
+            int emptySetPosition = entry.getValue().indexOf("∅");
+            
             List<Proposer> preferenceList = entry.getValue().stream()
+                .filter(id -> !id.equals("∅"))  // Filter out empty set symbol
                 .map(id -> {
                     Proposer proposer = proposerMap.get(id);
                     if (proposer == null) {
@@ -109,6 +113,11 @@ public class SimulationConfigLoader {
                 .collect(Collectors.toList());
             
             builder.setProposeePreferences(proposee, preferenceList);
+            
+            // If empty set was found, set the proposee empty set preference
+            if (emptySetPosition != -1) {
+                builder.setProposeeEmptySetPreference(proposee, emptySetPosition);
+            }
         }
         
         return builder.build();

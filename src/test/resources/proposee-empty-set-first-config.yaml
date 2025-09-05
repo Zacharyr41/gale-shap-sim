@@ -1,0 +1,17 @@
+simulation:
+  proposers:
+    - id: m1
+      name: RegularGuy
+    - id: m2
+      name: AnotherGuy
+  proposees:
+    - id: w1
+      name: SingleLady
+    - id: w2
+      name: NormalWoman
+  proposerPreferences:
+    m1: [w1, w2]     # RegularGuy prefers SingleLady > NormalWoman
+    m2: [w2, w1]     # AnotherGuy prefers NormalWoman > SingleLady
+  proposeePreferences:
+    w1: ["∅", m1, m2]  # SingleLady prefers empty set (being single) > RegularGuy > AnotherGuy
+    w2: [m1, m2]       # NormalWoman prefers RegularGuy > AnotherGuy

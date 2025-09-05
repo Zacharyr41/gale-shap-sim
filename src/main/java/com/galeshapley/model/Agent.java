@@ -5,10 +5,16 @@ import java.util.Objects;
 public abstract class Agent {
     private final String id;
     private final String name;
+    protected final boolean isEmptySet;
 
     protected Agent(String id, String name) {
+        this(id, name, false);
+    }
+    
+    protected Agent(String id, String name, boolean isEmptySet) {
         this.id = Objects.requireNonNull(id, "Agent ID cannot be null");
         this.name = Objects.requireNonNull(name, "Agent name cannot be null");
+        this.isEmptySet = isEmptySet;
     }
 
     public String getId() {
@@ -17,6 +23,10 @@ public abstract class Agent {
 
     public String getName() {
         return name;
+    }
+    
+    public boolean isEmptySet() {
+        return isEmptySet;
     }
 
     @Override
