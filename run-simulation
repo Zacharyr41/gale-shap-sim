@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Gale-Shapley Simulator - Easy CLI Runner
+# Usage: ./run-simulation [config.yaml]
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+print_usage() {
+    echo -e "${BLUE}Gale-Shapley Simulator${NC}"
+    echo "Usage: $0 [config.yaml]"
+    echo ""
+    echo "Examples:"
+    echo "  $0                                    # Run with default config"
+    echo "  $0 my-config.yaml                    # Run with custom config"
+    echo "  $0 src/test/resources/empty-set-config.yaml"
+    echo ""
+    echo "Available test configs:"
+    echo "  - src/test/resources/stable-matching-config.yaml"
+    echo "  - src/test/resources/asymmetric-matching-config.yaml"
+    echo "  - src/test/resources/empty-set-config.yaml"
+    echo "  - src/test/resources/consistent-results-config.yaml"
+}
+
+# Check if help requested
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    print_usage
+    exit 0
+fi
+
+# Determine config file
+CONFIG_FILE="${1:-src/main/resources/example-config.yaml}"
+
+# Check if config file exists
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo -e "${RED}Error: Configuration file '$CONFIG_FILE' not found!${NC}" >&2
+    echo ""
+    print_usage
+    exit 1
+fi
+
+# Run the simulation using Maven (more reliable than JAR across different Java setups)
+echo -e "${BLUE}Running Gale-Shapley simulation with: $CONFIG_FILE${NC}"
+echo ""
+mvn exec:java -Dexec.mainClass="com.galeshapley.Main" -Dexec.args="\"$CONFIG_FILE\"" -q
