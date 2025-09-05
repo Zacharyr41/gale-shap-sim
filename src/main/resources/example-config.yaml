@@ -1,0 +1,29 @@
+simulation:
+  proposers:
+    - id: m1
+      name: Alice
+    - id: m2
+      name: Bob
+    - id: m3
+      name: Charlie
+    - id: m4
+      name: David
+  proposees:
+    - id: w1
+      name: Eve
+    - id: w2
+      name: Fiona
+    - id: w3
+      name: Grace
+    - id: w4
+      name: Helen
+  proposerPreferences:
+    m1: [w1, w2, w3, w4]
+    m2: [w2, w1, w4, w3]
+    m3: [w3, w4, w1, w2]
+    m4: [w4, w3, w2, w1]
+  proposeePreferences:
+    w1: [m2, m1, m3, m4]
+    w2: [m1, m2, m4, m3]
+    w3: [m3, m4, m1, m2]
+    w4: [m4, m3, m2, m1]
