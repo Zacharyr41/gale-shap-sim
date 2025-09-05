@@ -8,7 +8,7 @@ public class EmptySet extends Proposee {
     private static final EmptySet INSTANCE = new EmptySet();
     
     private EmptySet() {
-        super("∅", "EmptySet");
+        super("∅", "EmptySet", true);
     }
     
     public static EmptySet getInstance() {
