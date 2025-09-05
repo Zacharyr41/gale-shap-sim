@@ -33,13 +33,21 @@ public class ConsoleObserver implements AlgorithmObserver {
     @Override
     public void onProposal(Proposer proposer, Proposee proposee) {
         if (verbose) {
-            System.out.println("  " + proposer.getName() + " proposes to " + proposee.getName());
+            if (proposee instanceof EmptySet) {
+                System.out.println("  " + proposer.getName() + " chooses to remain single");
+            } else {
+                System.out.println("  " + proposer.getName() + " proposes to " + proposee.getName());
+            }
         }
     }
     
     @Override
     public void onAcceptance(Proposer proposer, Proposee proposee) {
-        System.out.println("  ✓ " + proposee.getName() + " accepts " + proposer.getName());
+        if (proposee instanceof EmptySet) {
+            System.out.println("  ✓ " + proposer.getName() + " will remain single");
+        } else {
+            System.out.println("  ✓ " + proposee.getName() + " accepts " + proposer.getName());
+        }
     }
     
     @Override
@@ -62,9 +70,13 @@ public class ConsoleObserver implements AlgorithmObserver {
         System.out.println("\n=== Algorithm Complete ===");
         System.out.println("Total iterations: " + totalIterations);
         System.out.println("\nFinal Matching:");
-        finalMatching.getAllMatches().forEach((proposer, proposee) -> 
-            System.out.println("  " + proposer.getName() + " ↔ " + proposee.getName())
-        );
+        finalMatching.getAllMatches().forEach((proposer, proposee) -> {
+            if (proposee instanceof EmptySet) {
+                System.out.println("  " + proposer.getName() + " → single");
+            } else {
+                System.out.println("  " + proposer.getName() + " ↔ " + proposee.getName());
+            }
+        });
         
         if (!finalMatching.getUnmatchedProposers().isEmpty()) {
             System.out.println("\nUnmatched Proposers:");

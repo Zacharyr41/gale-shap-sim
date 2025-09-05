@@ -8,7 +8,6 @@ import java.util.*;
 public class GaleShapleyAlgorithm {
     private final Map<Proposer, PreferenceList<Proposee>> proposerPreferences;
     private final Map<Proposee, PreferenceList<Proposer>> proposeePreferences;
-    private final Map<Proposer, Integer> emptySetPreferences;
     private final Map<Proposer, Integer> nextProposalIndex;
     private final List<AlgorithmObserver> observers;
     private Matching currentMatching;
@@ -24,12 +23,62 @@ public class GaleShapleyAlgorithm {
             Map<Proposer, PreferenceList<Proposee>> proposerPreferences,
             Map<Proposee, PreferenceList<Proposer>> proposeePreferences,
             Map<Proposer, Integer> emptySetPreferences) {
-        this.proposerPreferences = new HashMap<>(proposerPreferences);
-        this.proposeePreferences = new HashMap<>(proposeePreferences);
-        this.emptySetPreferences = new HashMap<>(emptySetPreferences);
+        this.proposerPreferences = processEmptySetPreferences(proposerPreferences, emptySetPreferences);
+        this.proposeePreferences = setupEmptySetAsProposee(proposeePreferences, proposerPreferences.keySet());
         this.nextProposalIndex = new HashMap<>();
         this.observers = new ArrayList<>();
         this.iterationCount = 0;
+    }
+    
+    private Map<Proposer, PreferenceList<Proposee>> processEmptySetPreferences(
+            Map<Proposer, PreferenceList<Proposee>> originalPreferences,
+            Map<Proposer, Integer> emptySetPositions) {
+        
+        Map<Proposer, PreferenceList<Proposee>> processedPreferences = new HashMap<>();
+        
+        for (Map.Entry<Proposer, PreferenceList<Proposee>> entry : originalPreferences.entrySet()) {
+            Proposer proposer = entry.getKey();
+            PreferenceList<Proposee> originalList = entry.getValue();
+            
+            List<Proposee> newPreferences = new ArrayList<>();
+            Integer emptySetPosition = emptySetPositions.get(proposer);
+            
+            if (emptySetPosition != null) {
+                // Insert EmptySet at the specified position
+                for (int i = 0; i < originalList.size(); i++) {
+                    if (i == emptySetPosition) {
+                        newPreferences.add(EmptySet.getInstance());
+                    }
+                    newPreferences.add(originalList.getPreferredAt(i));
+                }
+                // If empty set position is at the end
+                if (emptySetPosition >= originalList.size()) {
+                    newPreferences.add(EmptySet.getInstance());
+                }
+            } else {
+                // No empty set preference, keep original list
+                newPreferences.addAll(originalList.getPreferences());
+            }
+            
+            processedPreferences.put(proposer, new PreferenceList<>(proposer, newPreferences));
+        }
+        
+        return processedPreferences;
+    }
+    
+    private Map<Proposee, PreferenceList<Proposer>> setupEmptySetAsProposee(
+            Map<Proposee, PreferenceList<Proposer>> originalPreferences,
+            Set<Proposer> allProposers) {
+        
+        Map<Proposee, PreferenceList<Proposer>> processedPreferences = new HashMap<>(originalPreferences);
+        
+        // EmptySet always accepts any proposal (ranks everyone equally at position 0)
+        // This ensures anyone who proposes to EmptySet will be "matched" with being single
+        List<Proposer> emptySetPreferences = new ArrayList<>(allProposers);
+        processedPreferences.put(EmptySet.getInstance(), 
+            new PreferenceList<>(EmptySet.getInstance(), emptySetPreferences));
+        
+        return processedPreferences;
     }
 
     public void addObserver(AlgorithmObserver observer) {
@@ -62,7 +111,10 @@ public class GaleShapleyAlgorithm {
         }
         
         for (Proposee proposee : proposeePreferences.keySet()) {
-            currentMatching.addProposee(proposee);
+            // Don't add EmptySet to the regular proposees collection
+            if (!(proposee instanceof EmptySet)) {
+                currentMatching.addProposee(proposee);
+            }
         }
     }
 
@@ -71,13 +123,9 @@ public class GaleShapleyAlgorithm {
             PreferenceList<Proposee> prefs = proposerPreferences.get(proposer);
             int nextIndex = nextProposalIndex.get(proposer);
             
-            // Check if proposer has more preferences and hasn't reached empty set cutoff
+            // Check if proposer has more preferences
             if (nextIndex < prefs.size()) {
-                // If proposer has empty set preference, check if we've reached that position
-                Integer emptySetPosition = emptySetPreferences.get(proposer);
-                if (emptySetPosition == null || nextIndex < emptySetPosition) {
-                    return true;
-                }
+                return true;
             }
         }
         return false;
@@ -92,14 +140,10 @@ public class GaleShapleyAlgorithm {
             PreferenceList<Proposee> prefs = proposerPreferences.get(proposer);
             int proposalIndex = nextProposalIndex.get(proposer);
             
-            // Check if proposer can make this proposal (hasn't reached empty set cutoff)
             if (proposalIndex < prefs.size()) {
-                Integer emptySetPosition = emptySetPreferences.get(proposer);
-                if (emptySetPosition == null || proposalIndex < emptySetPosition) {
-                    Proposee proposee = prefs.getPreferredAt(proposalIndex);
-                    makeProposal(proposer, proposee);
-                    nextProposalIndex.put(proposer, proposalIndex + 1);
-                }
+                Proposee proposee = prefs.getPreferredAt(proposalIndex);
+                makeProposal(proposer, proposee);
+                nextProposalIndex.put(proposer, proposalIndex + 1);
             }
         }
         
@@ -108,6 +152,13 @@ public class GaleShapleyAlgorithm {
 
     private void makeProposal(Proposer proposer, Proposee proposee) {
         notifyProposal(proposer, proposee);
+        
+        // Special handling for EmptySet - always accepts (represents choosing to be single)
+        if (proposee instanceof EmptySet) {
+            currentMatching.match(proposer, proposee);
+            notifyAcceptance(proposer, proposee);
+            return;
+        }
         
         Optional<Proposer> currentMatch = currentMatching.getMatch(proposee);
         

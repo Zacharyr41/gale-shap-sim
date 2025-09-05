@@ -27,7 +27,8 @@ public class Main {
             
             GaleShapleyAlgorithm algorithm = new GaleShapleyAlgorithm(
                 config.getProposerPreferences(),
-                config.getProposeePreferences()
+                config.getProposeePreferences(),
+                config.getEmptySetPreferences()
             );
             
             ConsoleObserver consoleObserver = new ConsoleObserver(true);
