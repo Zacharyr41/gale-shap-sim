@@ -1,0 +1,145 @@
+simulation:
+  proposers:
+    - id: m1
+      name: Proposer1
+    - id: m2
+      name: Proposer2
+    - id: m3
+      name: Proposer3
+    - id: m4
+      name: Proposer4
+    - id: m5
+      name: Proposer5
+    - id: m6
+      name: Proposer6
+    - id: m7
+      name: Proposer7
+    - id: m8
+      name: Proposer8
+    - id: m9
+      name: Proposer9
+    - id: m10
+      name: Proposer10
+  proposees:
+    - id: w1
+      name: Proposee1
+    - id: w2
+      name: Proposee2
+    - id: w3
+      name: Proposee3
+    - id: w4
+      name: Proposee4
+    - id: w5
+      name: Proposee5
+    - id: w6
+      name: Proposee6
+    - id: w7
+      name: Proposee7
+    - id: w8
+      name: Proposee8
+    - id: w9
+      name: Proposee9
+    - id: w10
+      name: Proposee10
+  proposerPreferences:
+    m1:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 42
+    m2:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 43
+    m3:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 44
+    m4:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 45
+    m5:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 46
+    m6:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 47
+    m7:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 48
+    m8:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 49
+    m9:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 50
+    m10:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 51
+  proposeePreferences:
+    w1:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 52
+    w2:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 53
+    w3:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 54
+    w4:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 55
+    w5:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 56
+    w6:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 57
+    w7:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 58
+    w8:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 59
+    w9:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 60
+    w10:
+      generator:
+        random: true
+        emptySetProbability: 0.2
+        seed: 61

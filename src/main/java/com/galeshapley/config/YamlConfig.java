@@ -2,6 +2,7 @@ package com.galeshapley.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.File;
@@ -31,10 +32,12 @@ public class YamlConfig {
         private List<AgentData> proposees;
         
         @JsonProperty("proposerPreferences")
-        private Map<String, List<String>> proposerPreferences;
+        @JsonDeserialize(using = PreferenceMapDeserializer.class)
+        private Map<String, PreferenceConfig> proposerPreferences;
         
         @JsonProperty("proposeePreferences")
-        private Map<String, List<String>> proposeePreferences;
+        @JsonDeserialize(using = PreferenceMapDeserializer.class)
+        private Map<String, PreferenceConfig> proposeePreferences;
         
         public List<AgentData> getProposers() {
             return proposers;
@@ -52,19 +55,19 @@ public class YamlConfig {
             this.proposees = proposees;
         }
         
-        public Map<String, List<String>> getProposerPreferences() {
+        public Map<String, PreferenceConfig> getProposerPreferences() {
             return proposerPreferences;
         }
         
-        public void setProposerPreferences(Map<String, List<String>> proposerPreferences) {
+        public void setProposerPreferences(Map<String, PreferenceConfig> proposerPreferences) {
             this.proposerPreferences = proposerPreferences;
         }
         
-        public Map<String, List<String>> getProposeePreferences() {
+        public Map<String, PreferenceConfig> getProposeePreferences() {
             return proposeePreferences;
         }
         
-        public void setProposeePreferences(Map<String, List<String>> proposeePreferences) {
+        public void setProposeePreferences(Map<String, PreferenceConfig> proposeePreferences) {
             this.proposeePreferences = proposeePreferences;
         }
     }

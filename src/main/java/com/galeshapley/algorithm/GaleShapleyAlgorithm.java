@@ -2,6 +2,8 @@ package com.galeshapley.algorithm;
 
 import com.galeshapley.model.*;
 import com.galeshapley.observer.AlgorithmObserver;
+import com.galeshapley.observer.StatisticsObserver;
+import com.galeshapley.config.RuntimeOptions;
 
 import java.util.*;
 
@@ -13,6 +15,7 @@ public class GaleShapleyAlgorithm {
     private final Map<Proposee, Integer> proposeeEmptySetPreferences;
     private Matching currentMatching;
     private int iterationCount;
+    private RuntimeOptions runtimeOptions;
 
     public GaleShapleyAlgorithm(
             Map<Proposer, PreferenceList<Proposee>> proposerPreferences,
@@ -32,12 +35,22 @@ public class GaleShapleyAlgorithm {
             Map<Proposee, PreferenceList<Proposer>> proposeePreferences,
             Map<Proposer, Integer> emptySetPreferences,
             Map<Proposee, Integer> proposeeEmptySetPreferences) {
+        this(proposerPreferences, proposeePreferences, emptySetPreferences, proposeeEmptySetPreferences, RuntimeOptions.defaultOptions());
+    }
+    
+    public GaleShapleyAlgorithm(
+            Map<Proposer, PreferenceList<Proposee>> proposerPreferences,
+            Map<Proposee, PreferenceList<Proposer>> proposeePreferences,
+            Map<Proposer, Integer> emptySetPreferences,
+            Map<Proposee, Integer> proposeeEmptySetPreferences,
+            RuntimeOptions runtimeOptions) {
         this.proposerPreferences = processEmptySetPreferences(proposerPreferences, emptySetPreferences);
         this.proposeePreferences = setupEmptySetHandling(proposeePreferences, proposerPreferences.keySet(), proposeeEmptySetPreferences);
         this.proposeeEmptySetPreferences = new HashMap<>(proposeeEmptySetPreferences);
         this.nextProposalIndex = new HashMap<>();
         this.observers = new ArrayList<>();
         this.iterationCount = 0;
+        this.runtimeOptions = runtimeOptions;
     }
     
     private Map<Proposer, PreferenceList<Proposee>> processEmptySetPreferences(
@@ -130,7 +143,7 @@ public class GaleShapleyAlgorithm {
         initialize();
         notifyStart();
 
-        while (!currentMatching.isComplete() && hasMoreProposals()) {
+        while (!currentMatching.isComplete() && hasMoreProposals() && iterationCount < runtimeOptions.getMaxIterations()) {
             iterationCount++;
             performIteration();
         }
@@ -188,6 +201,9 @@ public class GaleShapleyAlgorithm {
     }
 
     private void makeProposal(Proposer proposer, Proposee proposee) {
+        // Track all proposal attempts, including those to empty sets
+        notifyProposalAttempt(proposer, proposee);
+        
         // Special handling for EmptySet - always accepts (represents choosing to be single)
         if (proposee.isEmptySet()) {
             currentMatching.match(proposer, proposee);
@@ -253,6 +269,14 @@ public class GaleShapleyAlgorithm {
 
     private void notifyProposal(Proposer proposer, Proposee proposee) {
         observers.forEach(observer -> observer.onProposal(proposer, proposee));
+    }
+    
+    private void notifyProposalAttempt(Proposer proposer, Proposee proposee) {
+        observers.forEach(observer -> {
+            if (observer instanceof StatisticsObserver) {
+                ((StatisticsObserver) observer).onProposalAttempt(proposer, proposee);
+            }
+        });
     }
 
     private void notifyAcceptance(Proposer proposer, Proposee proposee) {

@@ -63,16 +63,19 @@ public class SimulationConfigLoader {
         proposeeMap.values().forEach(builder::addProposee);
         
         // Set proposer preferences
-        for (Map.Entry<String, List<String>> entry : simData.getProposerPreferences().entrySet()) {
+        for (Map.Entry<String, PreferenceConfig> entry : simData.getProposerPreferences().entrySet()) {
             Proposer proposer = proposerMap.get(entry.getKey());
             if (proposer == null) {
                 throw new IllegalArgumentException("Unknown proposer ID in preferences: " + entry.getKey());
             }
             
-            // Find position of empty set (if any) in original preference list
-            int emptySetPosition = entry.getValue().indexOf("∅");
+            PreferenceConfig prefConfig = entry.getValue();
+            List<String> rawPreferences = resolvePreferences(prefConfig, proposeeMap.keySet());
             
-            List<Proposee> preferenceList = entry.getValue().stream()
+            // Find position of empty set (if any) in original preference list
+            int emptySetPosition = rawPreferences.indexOf("∅");
+            
+            List<Proposee> preferenceList = rawPreferences.stream()
                 .filter(id -> !id.equals("∅"))  // Filter out empty set symbol
                 .map(id -> {
                     Proposee proposee = proposeeMap.get(id);
@@ -92,16 +95,19 @@ public class SimulationConfigLoader {
         }
         
         // Set proposee preferences
-        for (Map.Entry<String, List<String>> entry : simData.getProposeePreferences().entrySet()) {
+        for (Map.Entry<String, PreferenceConfig> entry : simData.getProposeePreferences().entrySet()) {
             Proposee proposee = proposeeMap.get(entry.getKey());
             if (proposee == null) {
                 throw new IllegalArgumentException("Unknown proposee ID in preferences: " + entry.getKey());
             }
             
-            // Find position of empty set (if any) in original preference list
-            int emptySetPosition = entry.getValue().indexOf("∅");
+            PreferenceConfig prefConfig = entry.getValue();
+            List<String> rawPreferences = resolvePreferences(prefConfig, proposerMap.keySet());
             
-            List<Proposer> preferenceList = entry.getValue().stream()
+            // Find position of empty set (if any) in original preference list
+            int emptySetPosition = rawPreferences.indexOf("∅");
+            
+            List<Proposer> preferenceList = rawPreferences.stream()
                 .filter(id -> !id.equals("∅"))  // Filter out empty set symbol
                 .map(id -> {
                     Proposer proposer = proposerMap.get(id);
@@ -121,5 +127,32 @@ public class SimulationConfigLoader {
         }
         
         return builder.build();
+    }
+    
+    /**
+     * Resolve preferences from either explicit list or generator configuration.
+     */
+    private List<String> resolvePreferences(PreferenceConfig config, Set<String> candidateIds) {
+        if (config.isExplicit()) {
+            return config.getExplicit();
+        } else {
+            PreferenceConfig.GeneratorConfig genConfig = config.getGenerator();
+            if (genConfig.isRandom()) {
+                Random random;
+                if (genConfig.getSeed() != null) {
+                    random = new Random(genConfig.getSeed());
+                } else {
+                    random = new Random();
+                }
+                
+                PreferenceGenerator generator = new PreferenceGenerator(
+                    random, true, PreferenceGenerator.EmptySetPlacement.RANDOM);
+                
+                boolean includeEmptySet = random.nextDouble() < genConfig.getEmptySetProbability();
+                return generator.generatePreferencesFromIds(candidateIds, includeEmptySet);
+            } else {
+                throw new IllegalArgumentException("Only random preference generation is currently supported");
+            }
+        }
     }
 }
