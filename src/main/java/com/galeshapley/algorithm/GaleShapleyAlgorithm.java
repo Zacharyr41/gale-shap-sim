@@ -140,6 +140,11 @@ public class GaleShapleyAlgorithm {
     }
 
     public AlgorithmResult execute() {
+        return execute(this.runtimeOptions);
+    }
+    
+    public AlgorithmResult execute(RuntimeOptions options) {
+        this.runtimeOptions = options;
         initialize();
         notifyStart();
 
