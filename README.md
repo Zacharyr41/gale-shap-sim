@@ -6,7 +6,9 @@ A Java-based simulator for the Gale-Shapley stable matching algorithm with suppo
 
 - **Object-Oriented Design**: Clean separation of concerns with models for Proposers, Proposees, Preferences, and Matchings
 - **YAML Configuration**: Easy configuration of simulation scenarios using YAML files
+- **Empty Set Preferences**: Support for agents who prefer being single over certain matches using `∅` symbol
 - **Observer Pattern**: Monitor algorithm execution with built-in console and statistics observers
+- **Simplified CLI**: Easy-to-use shell scripts and Makefile for running simulations
 - **Test-Driven Development**: Comprehensive unit tests using JUnit 5
 - **Extensible Architecture**: Easy to add constraints and edge cases in future iterations
 
@@ -60,7 +62,45 @@ mvn test
 
 ## Running the Simulator
 
-### Basic Usage
+### Quick Start (Simplified CLI)
+
+For the easiest way to run simulations, use the provided convenience scripts:
+
+#### Shell Script (recommended)
+```bash
+# Run with default configuration
+./run-simulation
+
+# Run with custom YAML file
+./run-simulation my-config.yaml
+
+# Run with test configurations
+./run-simulation src/test/resources/empty-set-config.yaml
+./run-simulation src/test/resources/asymmetric-matching-config.yaml
+
+# Get help
+./run-simulation --help
+```
+
+#### Makefile Commands
+```bash
+# See all available commands
+make help
+
+# Run different scenarios
+make run-empty        # Empty set preferences scenario
+make run-asymmetric   # Asymmetric matching scenario  
+make run-stable       # Stable matching scenario
+
+# Run with custom file
+make run FILE=my-config.yaml
+
+# Build and test
+make build
+make test
+```
+
+### Advanced Usage (Maven)
 
 #### Using the example configuration:
 
@@ -72,6 +112,16 @@ mvn exec:java -Dexec.mainClass="com.galeshapley.Main"
 
 ```bash
 mvn exec:java -Dexec.mainClass="com.galeshapley.Main" -Dexec.args="path/to/your/config.yaml"
+```
+
+#### Using the executable JAR:
+
+```bash
+# Build the JAR
+mvn package
+
+# Run with JAR (requires proper Java runtime configuration)
+java -jar target/gale-shapley.jar path/to/your/config.yaml
 ```
 
 ### CLI Output and Capturing Results
