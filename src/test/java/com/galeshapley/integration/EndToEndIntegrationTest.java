@@ -161,26 +161,29 @@ class EndToEndIntegrationTest {
         
         GaleShapleyAlgorithm.AlgorithmResult result = algorithm.execute();
         
-        // Then: The person who preferred being single should remain unmatched
+        // Then: The person who preferred being single should be matched to EmptySet
         assertThat(result.getFinalMatching().getUnmatchedProposers())
-            .hasSize(1)
-            .satisfies(unmatched -> {
-                Proposer singlePreferrer = unmatched.iterator().next();
-                assertThat(singlePreferrer.getName()).isEqualTo("SinglePreferrer");
-            });
+            .hasSize(0); // No unmatched proposers since SinglePreferrer is matched to EmptySet
+        
+        // Verify SinglePreferrer is matched to EmptySet (chose to be single)
+        var allMatches = result.getFinalMatching().getAllMatches();
+        var singlePreferrer = allMatches.keySet().stream()
+            .filter(p -> p.getName().equals("SinglePreferrer"))
+            .findFirst().orElseThrow();
+        assertThat(allMatches.get(singlePreferrer))
+            .isInstanceOf(com.galeshapley.model.EmptySet.class)
+            .satisfies(match -> assertThat(match.getName()).isEqualTo("EmptySet"));
         
         // And: The algorithm should still achieve the best possible matching for others
-        assertThat(result.getFinalMatching().getMatchCount()).isEqualTo(1);
-        assertThat(result.getFinalMatching().getAllMatches())
-            .hasSize(1)
-            .satisfies(matches -> {
-                var regularGuy = matches.keySet().stream()
-                    .filter(p -> p.getName().equals("RegularGuy"))
-                    .findFirst().orElseThrow();
-                assertThat(matches.get(regularGuy).getName()).isEqualTo("Alice");
-            });
+        assertThat(result.getFinalMatching().getMatchCount()).isEqualTo(2); // SinglePreferrer-EmptySet, RegularGuy-Alice
         
-        // Verify one proposee remains unmatched as well
+        // Verify RegularGuy is matched to Alice
+        var regularGuy = allMatches.keySet().stream()
+            .filter(p -> p.getName().equals("RegularGuy"))
+            .findFirst().orElseThrow();
+        assertThat(allMatches.get(regularGuy).getName()).isEqualTo("Alice");
+        
+        // Verify Betty remains unmatched
         assertThat(result.getFinalMatching().getUnmatchedProposees())
             .hasSize(1)
             .satisfies(unmatched -> {
