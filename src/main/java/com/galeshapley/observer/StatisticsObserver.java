@@ -51,11 +51,13 @@ public class StatisticsObserver implements AlgorithmObserver {
     public void onRejection(Proposer proposer, Proposee proposee) {
         totalRejections++;
         rejectionCountByProposer.merge(proposer, 1, Integer::sum);
-        
-        // If this proposer was previously matched, this is a broken engagement
-        if (previouslyMatchedProposers.contains(proposer)) {
-            totalBrokenEngagements++;
-        }
+    }
+    
+    @Override
+    public void onBrokenEngagement(Proposer brokenUpWith, Proposee proposee, Proposer newProposer) {
+        totalBrokenEngagements++;
+        // This counts as a rejection for the broken-up-with proposer
+        rejectionCountByProposer.merge(brokenUpWith, 1, Integer::sum);
     }
     
     @Override

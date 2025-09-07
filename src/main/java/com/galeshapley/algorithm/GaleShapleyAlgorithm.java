@@ -253,7 +253,7 @@ public class GaleShapleyAlgorithm {
             if (proposeePrefs.prefers(proposer, currentProposer)) {
                 currentMatching.unmatch(currentProposer, proposee);
                 currentMatching.match(proposer, proposee);
-                notifyRejection(currentProposer, proposee);
+                notifyBrokenEngagement(currentProposer, proposee, proposer);
                 notifyAcceptance(proposer, proposee);
             } else {
                 notifyRejection(proposer, proposee);
@@ -295,6 +295,10 @@ public class GaleShapleyAlgorithm {
 
     private void notifyRejection(Proposer proposer, Proposee proposee) {
         observers.forEach(observer -> observer.onRejection(proposer, proposee));
+    }
+    
+    private void notifyBrokenEngagement(Proposer brokenUpWith, Proposee proposee, Proposer newProposer) {
+        observers.forEach(observer -> observer.onBrokenEngagement(brokenUpWith, proposee, newProposer));
     }
 
     private void notifyIterationEnd(int iteration) {

@@ -25,9 +25,7 @@ public class ConsoleObserver implements AlgorithmObserver {
     
     @Override
     public void onIterationStart(int iteration) {
-        if (verbose) {
-            System.out.println("--- Iteration " + iteration + " ---");
-        }
+        System.out.println("\n--- Iteration " + iteration + " ---");
     }
     
     @Override
@@ -52,9 +50,12 @@ public class ConsoleObserver implements AlgorithmObserver {
     
     @Override
     public void onRejection(Proposer proposer, Proposee proposee) {
-        if (verbose) {
-            System.out.println("  ✗ " + proposee.getName() + " rejects " + proposer.getName());
-        }
+        System.out.println("  ✗ " + proposee.getName() + " rejects " + proposer.getName());
+    }
+    
+    @Override
+    public void onBrokenEngagement(Proposer brokenUpWith, Proposee proposee, Proposer newProposer) {
+        System.out.println("  💔 " + proposee.getName() + " breaks engagement with " + brokenUpWith.getName() + " for " + newProposer.getName());
     }
     
     @Override
