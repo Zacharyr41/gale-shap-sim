@@ -1,0 +1,105 @@
+simulation:
+  proposers:
+    - id: m1
+      name: Proposer1
+    - id: m2
+      name: Proposer2
+    - id: m3
+      name: Proposer3
+    - id: m4
+      name: Proposer4
+    - id: m5
+      name: Proposer5
+  proposees:
+    - id: w1
+      name: PopularProposee1
+    - id: w2
+      name: PopularProposee2
+    - id: w3
+      name: RegularProposee3
+    - id: w4
+      name: RegularProposee4
+    - id: w5
+      name: RegularProposee5
+  proposerPreferences:
+    m1:
+      generator:
+        distribution:
+          type: correlated
+          popularityBias:
+            - agent: w1
+              weight: 3.0
+            - agent: w2
+              weight: 2.0
+          topPercentage: 40
+          emptySetProbability: 0.1
+    m2:
+      generator:
+        distribution:
+          type: correlated
+          popularityBias:
+            - agent: w1
+              weight: 3.0
+            - agent: w2
+              weight: 2.0
+          topPercentage: 40
+          emptySetProbability: 0.1
+    m3:
+      generator:
+        distribution:
+          type: correlated
+          popularityBias:
+            - agent: w1
+              weight: 3.0
+            - agent: w2
+              weight: 2.0
+          topPercentage: 40
+          emptySetProbability: 0.1
+    m4:
+      generator:
+        distribution:
+          type: correlated
+          popularityBias:
+            - agent: w1
+              weight: 3.0
+            - agent: w2
+              weight: 2.0
+          topPercentage: 40
+          emptySetProbability: 0.1
+    m5:
+      generator:
+        distribution:
+          type: correlated
+          popularityBias:
+            - agent: w1
+              weight: 3.0
+            - agent: w2
+              weight: 2.0
+          topPercentage: 40
+          emptySetProbability: 0.1
+  proposeePreferences:
+    w1:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.1
+    w2:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.1
+    w3:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.1
+    w4:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.1
+    w5:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.1

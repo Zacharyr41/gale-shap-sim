@@ -144,10 +144,7 @@ public class SimulationConfigLoader {
                 }
                 
                 // Generate preferences using the appropriate config
-                PreferenceConfig prefConfig = PreferenceConfig.random(
-                    genConfig.getEmptySetProbability(), 
-                    null  // Don't pass individual seed, let resolvePreferences handle seeding
-                );
+                PreferenceConfig prefConfig = PreferenceConfig.withDistribution(genConfig.getDistribution());
                 List<String> rawPreferences = resolvePreferences(prefConfig, proposeeMap.keySet(), seedGenerator);
                 
                 // Process preferences as before
@@ -231,10 +228,7 @@ public class SimulationConfigLoader {
                 }
                 
                 // Generate preferences using the appropriate config
-                PreferenceConfig prefConfig = PreferenceConfig.random(
-                    genConfig.getEmptySetProbability(), 
-                    null  // Don't pass individual seed, let resolvePreferences handle seeding
-                );
+                PreferenceConfig prefConfig = PreferenceConfig.withDistribution(genConfig.getDistribution());
                 List<String> rawPreferences = resolvePreferences(prefConfig, proposerMap.keySet(), seedGenerator);
                 
                 // Process preferences as before
@@ -301,26 +295,23 @@ public class SimulationConfigLoader {
             return config.getExplicit();
         } else {
             PreferenceConfig.GeneratorConfig genConfig = config.getGenerator();
-            if (genConfig.isRandom()) {
-                Random random;
-                if (seedGenerator != null) {
-                    // Use global seed to generate individual seed for this agent
-                    random = new Random(seedGenerator.nextLong());
-                } else if (genConfig.getSeed() != null) {
-                    // Fall back to individual seed if no global seed
-                    random = new Random(genConfig.getSeed());
-                } else {
-                    random = new Random();
-                }
-                
-                PreferenceGenerator generator = new PreferenceGenerator(
-                    random, false, PreferenceGenerator.EmptySetPlacement.RANDOM);
-                
-                boolean includeEmptySet = random.nextDouble() < genConfig.getEmptySetProbability();
-                return generator.generatePreferencesFromIds(candidateIds, includeEmptySet);
+            com.galeshapley.config.distribution.DistributionConfig distribution = genConfig.getDistribution();
+            
+            Random random;
+            if (seedGenerator != null) {
+                // Use global seed to generate individual seed for this agent
+                random = new Random(seedGenerator.nextLong());
+            } else if (distribution.getSeed() != null) {
+                // Fall back to individual seed if no global seed
+                random = new Random(distribution.getSeed());
             } else {
-                throw new IllegalArgumentException("Only random preference generation is currently supported");
+                random = new Random();
             }
+            
+            PreferenceGenerator generator = new PreferenceGenerator(distribution, random);
+            
+            boolean includeEmptySet = random.nextDouble() < distribution.getEmptySetProbability();
+            return generator.generatePreferencesFromIds(candidateIds, includeEmptySet);
         }
     }
 }

@@ -44,82 +44,102 @@ simulation:
   proposerPreferences:
     m1:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     m2:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     m3:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     m4:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     m5:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     m6:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     m7:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     m8:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     m9:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     m10:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
   proposeePreferences:
     w1:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     w2:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     w3:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     w4:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     w5:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     w6:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     w7:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     w8:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     w9:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2
     w10:
       generator:
-        random: true
-        emptySetProbability: 0.2
+        distribution:
+          type: uniform
+          emptySetProbability: 0.2

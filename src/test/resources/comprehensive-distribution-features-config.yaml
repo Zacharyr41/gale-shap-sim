@@ -1,0 +1,111 @@
+simulation:
+  # Global configuration for proposers - uses correlated distribution by default
+  proposerConfig:
+    count: 100
+    generator:
+      distribution:
+        type: correlated
+        popularityBias:
+          - agent: e10
+            weight: 4.0  # Very popular proposee
+          - agent: e25
+            weight: 2.5  # Moderately popular proposee
+          - agent: e50
+            weight: 2.0  # Somewhat popular proposee
+        topPercentage: 30  # Apply bias to top 30% of preferences
+        emptySetProbability: 0.10  # 10% chance of empty set
+
+  # Global configuration for proposees - uses uniform distribution by default  
+  proposeeConfig:
+    count: 80
+    generator:
+      distribution:
+        type: uniform
+        emptySetProbability: 0.15  # 15% chance of empty set
+
+  # Override specific proposer ranges/indices with different distributions
+  proposerOverrides:
+    # Range 10-19: Switch to uniform distribution (opposite of global default)
+    - range:
+        start: 10
+        end: 19
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.05  # Lower empty set probability
+    
+    # Range 30-39: Different correlated distribution with different popular agents
+    - range:
+        start: 30
+        end: 39
+      generator:
+        distribution:
+          type: correlated
+          popularityBias:
+            - agent: e5
+              weight: 5.0   # Different popular agent than global
+            - agent: e15
+              weight: 3.0
+          topPercentage: 50  # Higher bias percentage than global
+          emptySetProbability: 0.20
+    
+    # Single proposer with extreme bias
+    - index: 50
+      generator:
+        distribution:
+          type: correlated
+          popularityBias:
+            - agent: e1
+              weight: 10.0  # Extremely biased toward e1
+          topPercentage: 80  # Very high bias
+          emptySetProbability: 0.0  # Never has empty set
+    
+    # Range 70-79: No bias (uniform with specific settings)
+    - range:
+        start: 70
+        end: 79
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.25
+
+  # Override specific proposee ranges/indices with different distributions
+  proposeeOverrides:
+    # Range 20-29: Switch to correlated distribution (opposite of global default)
+    - range:
+        start: 20
+        end: 29
+      generator:
+        distribution:
+          type: correlated
+          popularityBias:
+            - agent: p5
+              weight: 3.0   # Popular proposer
+            - agent: p20
+              weight: 2.0
+            - agent: p35
+              weight: 2.5
+          topPercentage: 25
+          emptySetProbability: 0.30
+    
+    # Range 50-59: High empty set probability uniform
+    - range:
+        start: 50
+        end: 59
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.40  # Very high empty set chance
+    
+    # Single proposee with specific correlated preferences
+    - index: 75
+      generator:
+        distribution:
+          type: correlated
+          popularityBias:
+            - agent: p10
+              weight: 6.0   # Very biased toward p10
+            - agent: p25
+              weight: 1.5   # Slight bias toward p25
+          topPercentage: 60
+          emptySetProbability: 0.10

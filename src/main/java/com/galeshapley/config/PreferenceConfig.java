@@ -2,12 +2,13 @@ package com.galeshapley.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.galeshapley.config.distribution.DistributionConfig;
 
 import java.util.List;
 
 /**
  * Configuration for agent preferences that can be either explicit or generated.
- * Supports both explicit preference lists and random generation configuration.
+ * Supports both explicit preference lists and generation using various distributions.
  */
 public class PreferenceConfig {
     
@@ -43,33 +44,22 @@ public class PreferenceConfig {
     }
     
     /**
-     * Configuration for preference generation.
+     * Configuration for preference generation using distributions.
      */
     public static class GeneratorConfig {
-        private final boolean random;
-        private final Double emptySetProbability;
-        private final Long seed;
+        private final DistributionConfig distribution;
         
         @JsonCreator
         public GeneratorConfig(
-                @JsonProperty("random") Boolean random,
-                @JsonProperty("emptySetProbability") Double emptySetProbability,
-                @JsonProperty("seed") Long seed) {
-            this.random = random != null ? random : false;
-            this.emptySetProbability = emptySetProbability != null ? emptySetProbability : 0.0;
-            this.seed = seed;
+                @JsonProperty("distribution") DistributionConfig distribution) {
+            if (distribution == null) {
+                throw new IllegalArgumentException("Generator config must specify a distribution");
+            }
+            this.distribution = distribution;
         }
         
-        public boolean isRandom() {
-            return random;
-        }
-        
-        public double getEmptySetProbability() {
-            return emptySetProbability;
-        }
-        
-        public Long getSeed() {
-            return seed;
+        public DistributionConfig getDistribution() {
+            return distribution;
         }
     }
     
@@ -81,17 +71,10 @@ public class PreferenceConfig {
     }
     
     /**
-     * Create random preference config.
+     * Create preference config with specified distribution.
      */
-    public static PreferenceConfig random(double emptySetProbability, Long seed) {
-        GeneratorConfig generator = new GeneratorConfig(true, emptySetProbability, seed);
+    public static PreferenceConfig withDistribution(DistributionConfig distribution) {
+        GeneratorConfig generator = new GeneratorConfig(distribution);
         return new PreferenceConfig(null, generator);
-    }
-    
-    /**
-     * Create random preference config with no empty set.
-     */
-    public static PreferenceConfig random(Long seed) {
-        return random(0.0, seed);
     }
 }
