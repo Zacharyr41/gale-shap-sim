@@ -262,9 +262,14 @@ public class GaleShapleyAlgorithm {
     }
 
     private void notifyStart() {
+        // Filter out EmptySet instances when counting proposees
+        Set<Proposee> realProposees = proposeePreferences.keySet().stream()
+            .filter(p -> !(p instanceof EmptySet))
+            .collect(java.util.stream.Collectors.toSet());
+            
         observers.forEach(observer -> observer.onAlgorithmStart(
             new HashSet<>(proposerPreferences.keySet()),
-            new HashSet<>(proposeePreferences.keySet())
+            realProposees
         ));
     }
 
