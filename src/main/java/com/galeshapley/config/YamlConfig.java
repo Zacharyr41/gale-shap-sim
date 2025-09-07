@@ -39,6 +39,18 @@ public class YamlConfig {
         @JsonDeserialize(using = PreferenceMapDeserializer.class)
         private Map<String, PreferenceConfig> proposeePreferences;
         
+        @JsonProperty("proposerConfig")
+        private GlobalAgentConfig proposerConfig;
+        
+        @JsonProperty("proposeeConfig")
+        private GlobalAgentConfig proposeeConfig;
+        
+        @JsonProperty("proposerOverrides")
+        private List<AgentOverride> proposerOverrides;
+        
+        @JsonProperty("proposeeOverrides")
+        private List<AgentOverride> proposeeOverrides;
+        
         public List<AgentData> getProposers() {
             return proposers;
         }
@@ -70,6 +82,38 @@ public class YamlConfig {
         public void setProposeePreferences(Map<String, PreferenceConfig> proposeePreferences) {
             this.proposeePreferences = proposeePreferences;
         }
+        
+        public GlobalAgentConfig getProposerConfig() {
+            return proposerConfig;
+        }
+        
+        public void setProposerConfig(GlobalAgentConfig proposerConfig) {
+            this.proposerConfig = proposerConfig;
+        }
+        
+        public GlobalAgentConfig getProposeeConfig() {
+            return proposeeConfig;
+        }
+        
+        public void setProposeeConfig(GlobalAgentConfig proposeeConfig) {
+            this.proposeeConfig = proposeeConfig;
+        }
+        
+        public List<AgentOverride> getProposerOverrides() {
+            return proposerOverrides;
+        }
+        
+        public void setProposerOverrides(List<AgentOverride> proposerOverrides) {
+            this.proposerOverrides = proposerOverrides;
+        }
+        
+        public List<AgentOverride> getProposeeOverrides() {
+            return proposeeOverrides;
+        }
+        
+        public void setProposeeOverrides(List<AgentOverride> proposeeOverrides) {
+            this.proposeeOverrides = proposeeOverrides;
+        }
     }
     
     public static class AgentData {
@@ -93,6 +137,113 @@ public class YamlConfig {
         
         public void setName(String name) {
             this.name = name;
+        }
+    }
+    
+    public static class GlobalAgentConfig {
+        @JsonProperty("count")
+        private int count;
+        
+        @JsonProperty("generator")
+        private GeneratorConfig generator;
+        
+        public int getCount() {
+            return count;
+        }
+        
+        public void setCount(int count) {
+            this.count = count;
+        }
+        
+        public GeneratorConfig getGenerator() {
+            return generator;
+        }
+        
+        public void setGenerator(GeneratorConfig generator) {
+            this.generator = generator;
+        }
+    }
+    
+    public static class GeneratorConfig {
+        @JsonProperty("type")
+        private String type;
+        
+        @JsonProperty("emptySetProbability")
+        private double emptySetProbability;
+        
+        public String getType() {
+            return type;
+        }
+        
+        public void setType(String type) {
+            this.type = type;
+        }
+        
+        public double getEmptySetProbability() {
+            return emptySetProbability;
+        }
+        
+        public void setEmptySetProbability(double emptySetProbability) {
+            this.emptySetProbability = emptySetProbability;
+        }
+    }
+    
+    public static class AgentOverride {
+        @JsonProperty("index")
+        private Integer index;
+        
+        @JsonProperty("range")
+        private RangeConfig range;
+        
+        @JsonProperty("generator")
+        private GeneratorConfig generator;
+        
+        public Integer getIndex() {
+            return index;
+        }
+        
+        public void setIndex(Integer index) {
+            this.index = index;
+        }
+        
+        public RangeConfig getRange() {
+            return range;
+        }
+        
+        public void setRange(RangeConfig range) {
+            this.range = range;
+        }
+        
+        public GeneratorConfig getGenerator() {
+            return generator;
+        }
+        
+        public void setGenerator(GeneratorConfig generator) {
+            this.generator = generator;
+        }
+    }
+    
+    public static class RangeConfig {
+        @JsonProperty("start")
+        private int start;
+        
+        @JsonProperty("end")
+        private int end;
+        
+        public int getStart() {
+            return start;
+        }
+        
+        public void setStart(int start) {
+            this.start = start;
+        }
+        
+        public int getEnd() {
+            return end;
+        }
+        
+        public void setEnd(int end) {
+            this.end = end;
         }
     }
     
