@@ -1,5 +1,8 @@
 package com.galeshapley.config;
 
+import com.galeshapley.config.distribution.UniformDistributionConfig;
+import com.galeshapley.config.distribution.CorrelatedDistributionConfig;
+import com.galeshapley.config.distribution.CorrelatedDistributionConfig.PopularityBias;
 import org.junit.jupiter.api.Test;
 import java.util.*;
 
@@ -8,9 +11,11 @@ import static org.assertj.core.api.Assertions.*;
 class PreferenceGeneratorTest {
     
     @Test
-    void shouldGenerateRandomPreferencesWithoutEmptySet() {
-        // Given: A preference generator without empty set
-        PreferenceGenerator generator = new PreferenceGenerator(12345L);
+    void shouldGenerateUniformPreferencesWithoutEmptySet() {
+        // Given: A preference generator with uniform distribution
+        UniformDistributionConfig config = new UniformDistributionConfig();
+        config.setEmptySetProbability(0.0);
+        PreferenceGenerator generator = new PreferenceGenerator(config, 12345L);
         List<String> candidates = Arrays.asList("A", "B", "C", "D");
         
         // When: Generating preferences
@@ -23,9 +28,11 @@ class PreferenceGeneratorTest {
     }
     
     @Test
-    void shouldGenerateRandomPreferencesWithEmptySet() {
-        // Given: A preference generator with empty set
-        PreferenceGenerator generator = PreferenceGenerator.randomWithEmptySet(54321L);
+    void shouldGenerateUniformPreferencesWithEmptySet() {
+        // Given: A preference generator with uniform distribution and empty set
+        UniformDistributionConfig config = new UniformDistributionConfig();
+        config.setEmptySetProbability(1.0);
+        PreferenceGenerator generator = new PreferenceGenerator(config, 54321L);
         List<String> candidates = Arrays.asList("A", "B", "C");
         
         // When: Generating preferences with empty set
@@ -36,16 +43,18 @@ class PreferenceGeneratorTest {
         assertThat(preferences).contains("∅");
         assertThat(preferences).containsAll(candidates);
         
-        // And: Empty set should be at some position (could be anywhere due to random placement)
+        // And: Empty set should be at some position
         int emptySetIndex = preferences.indexOf("∅");
         assertThat(emptySetIndex).isBetween(0, 3);
     }
     
     @Test
     void shouldGenerateConsistentPreferencesWithSameSeed() {
-        // Given: Two generators with same seed
-        PreferenceGenerator generator1 = new PreferenceGenerator(42L);
-        PreferenceGenerator generator2 = new PreferenceGenerator(42L);
+        // Given: Two generators with same seed and distribution
+        UniformDistributionConfig config = new UniformDistributionConfig();
+        config.setEmptySetProbability(0.0);
+        PreferenceGenerator generator1 = new PreferenceGenerator(config, 42L);
+        PreferenceGenerator generator2 = new PreferenceGenerator(config, 42L);
         List<String> candidates = Arrays.asList("X", "Y", "Z", "W");
         
         // When: Generating preferences
@@ -59,8 +68,10 @@ class PreferenceGeneratorTest {
     @Test
     void shouldGenerateDifferentPreferencesWithDifferentSeeds() {
         // Given: Two generators with different seeds
-        PreferenceGenerator generator1 = new PreferenceGenerator(42L);
-        PreferenceGenerator generator2 = new PreferenceGenerator(43L);
+        UniformDistributionConfig config = new UniformDistributionConfig();
+        config.setEmptySetProbability(0.0);
+        PreferenceGenerator generator1 = new PreferenceGenerator(config, 42L);
+        PreferenceGenerator generator2 = new PreferenceGenerator(config, 43L);
         List<String> candidates = Arrays.asList("X", "Y", "Z", "W");
         
         // When: Generating preferences
@@ -76,13 +87,15 @@ class PreferenceGeneratorTest {
     @Test
     void shouldGeneratePreferencesForMultipleAgents() {
         // Given: A preference generator with specific empty set probability
-        PreferenceGenerator generator = PreferenceGenerator.randomWithEmptySet(100L);
+        UniformDistributionConfig config = new UniformDistributionConfig();
+        config.setEmptySetProbability(0.5); // 50% probability
+        PreferenceGenerator generator = new PreferenceGenerator(config, 100L);
         Set<String> agentIds = Set.of("agent1", "agent2", "agent3");
         Set<String> candidateIds = Set.of("A", "B", "C");
         
         // When: Generating preferences for multiple agents
         Map<String, List<String>> allPreferences = generator.generatePreferencesForAgents(
-            agentIds, candidateIds, 0.5); // 50% probability of empty set
+            agentIds, candidateIds);
         
         // Then: Should generate preferences for all agents
         assertThat(allPreferences).hasSize(3);
@@ -97,17 +110,19 @@ class PreferenceGeneratorTest {
     
     @Test
     void shouldRespectEmptySetProbability() {
-        // Given: A preference generator that supports empty sets
-        PreferenceGenerator generator = PreferenceGenerator.randomWithEmptySet(200L);
+        // Given: A preference generator with 100% empty set probability
+        UniformDistributionConfig config = new UniformDistributionConfig();
+        config.setEmptySetProbability(1.0); // 100% probability
+        PreferenceGenerator generator = new PreferenceGenerator(config, 200L);
         Set<String> agentIds = new HashSet<>();
         for (int i = 1; i <= 20; i++) {
             agentIds.add("agent" + i);
         }
         Set<String> candidateIds = Set.of("A", "B", "C");
         
-        // When: Generating preferences with 100% empty set probability
+        // When: Generating preferences
         Map<String, List<String>> allPreferences = generator.generatePreferencesForAgents(
-            agentIds, candidateIds, 1.0); // 100% probability
+            agentIds, candidateIds);
         
         // Then: All agents should have empty set in their preferences
         for (List<String> preferences : allPreferences.values()) {
@@ -117,21 +132,47 @@ class PreferenceGeneratorTest {
     }
     
     @Test
-    void shouldHandleEmptySetPlacementStrategies() {
-        // Given: Different placement strategies
-        PreferenceGenerator firstPlacement = PreferenceGenerator.withConfig(
-            true, PreferenceGenerator.EmptySetPlacement.FIRST, 300L);
-        PreferenceGenerator lastPlacement = PreferenceGenerator.withConfig(
-            true, PreferenceGenerator.EmptySetPlacement.LAST, 300L);
+    void shouldGenerateCorrelatedPreferences() {
+        // Given: A preference generator with correlated distribution
+        CorrelatedDistributionConfig config = new CorrelatedDistributionConfig();
+        config.setEmptySetProbability(0.0);
+        config.setTopPercentage(50.0); // Top 50% of positions
         
-        List<String> candidates = Arrays.asList("A", "B", "C");
+        // Set up popularity bias
+        List<PopularityBias> biases = new ArrayList<>();
+        PopularityBias bias1 = new PopularityBias();
+        bias1.setAgent("A");
+        bias1.setWeight(3.0); // 3x more likely
+        biases.add(bias1);
         
-        // When: Generating preferences with different placements
-        List<String> firstPrefs = firstPlacement.generatePreferencesFromIds(candidates, true);
-        List<String> lastPrefs = lastPlacement.generatePreferencesFromIds(candidates, true);
+        PopularityBias bias2 = new PopularityBias();
+        bias2.setAgent("B");
+        bias2.setWeight(2.0); // 2x more likely
+        biases.add(bias2);
         
-        // Then: Empty set should be in expected positions
-        assertThat(firstPrefs.get(0)).isEqualTo("∅");
-        assertThat(lastPrefs.get(lastPrefs.size() - 1)).isEqualTo("∅");
+        config.setPopularityBias(biases);
+        
+        PreferenceGenerator generator = new PreferenceGenerator(config, 300L);
+        List<String> candidates = Arrays.asList("A", "B", "C", "D");
+        
+        // When: Generating multiple preferences to test correlation
+        Map<String, Integer> topPositionCounts = new HashMap<>();
+        for (String candidate : candidates) {
+            topPositionCounts.put(candidate, 0);
+        }
+        
+        for (int i = 0; i < 100; i++) {
+            List<String> prefs = generator.generatePreferencesFromIds(candidates, false);
+            // Count who appears in top 2 positions
+            for (int j = 0; j < 2; j++) {
+                String agent = prefs.get(j);
+                topPositionCounts.put(agent, topPositionCounts.get(agent) + 1);
+            }
+        }
+        
+        // Then: A and B should appear more frequently in top positions
+        // Due to weights, we expect A to appear most, then B, then C and D roughly equally
+        assertThat(topPositionCounts.get("A")).isGreaterThan(topPositionCounts.get("C"));
+        assertThat(topPositionCounts.get("B")).isGreaterThan(topPositionCounts.get("D"));
     }
 }

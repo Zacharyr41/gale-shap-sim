@@ -165,26 +165,20 @@ public class YamlConfig {
     }
     
     public static class GeneratorConfig {
-        @JsonProperty("type")
-        private String type;
+        @JsonProperty("distribution")
+        private com.galeshapley.config.distribution.DistributionConfig distribution;
         
-        @JsonProperty("emptySetProbability")
-        private double emptySetProbability;
-        
-        public String getType() {
-            return type;
+        public com.galeshapley.config.distribution.DistributionConfig getDistribution() {
+            return distribution;
         }
         
-        public void setType(String type) {
-            this.type = type;
+        public void setDistribution(com.galeshapley.config.distribution.DistributionConfig distribution) {
+            this.distribution = distribution;
         }
         
+        // For backwards compatibility during migration
         public double getEmptySetProbability() {
-            return emptySetProbability;
-        }
-        
-        public void setEmptySetProbability(double emptySetProbability) {
-            this.emptySetProbability = emptySetProbability;
+            return distribution != null ? distribution.getEmptySetProbability() : 0.0;
         }
     }
     

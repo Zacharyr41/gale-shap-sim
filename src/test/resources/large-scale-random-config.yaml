@@ -3,15 +3,17 @@ simulation:
   proposerConfig:
     count: 1000
     generator:
-      type: random
-      emptySetProbability: 0.05  # 5% chance of empty set
+      distribution:
+        type: uniform
+        emptySetProbability: 0.05  # 5% chance of empty set
   
   # Global configuration for proposees  
   proposeeConfig:
     count: 1050
     generator:
-      type: random
-      emptySetProbability: 0.20  # 20% chance of empty set
+      distribution:
+        type: uniform
+        emptySetProbability: 0.20  # 20% chance of empty set
   
   # Individual overrides for specific proposers
   proposerOverrides:
@@ -20,13 +22,15 @@ simulation:
         start: 99
         end: 149
       generator:
-        type: random
-        emptySetProbability: 0.15  # 15% chance
+        distribution:
+          type: uniform
+          emptySetProbability: 0.15  # 15% chance
     # Single override for proposer 190 (index 189)
     - index: 189
       generator:
-        type: random
-        emptySetProbability: 0.15  # 15% chance
+        distribution:
+          type: uniform
+          emptySetProbability: 0.15  # 15% chance
   
   # Individual overrides for specific proposees
   proposeeOverrides:
@@ -35,10 +39,12 @@ simulation:
         start: 199
         end: 249
       generator:
-        type: random
-        emptySetProbability: 0.40  # 40% chance
+        distribution:
+          type: uniform
+          emptySetProbability: 0.40  # 40% chance
     # Single override for proposee 290 (index 289)
     - index: 289
       generator:
-        type: random
-        emptySetProbability: 0.40  # 40% chance
+        distribution:
+          type: uniform
+          emptySetProbability: 0.40  # 40% chance

@@ -1,89 +1,71 @@
 package com.galeshapley.config;
 
+import com.galeshapley.config.distribution.DistributionConfig;
+import com.galeshapley.config.distribution.UniformDistributionConfig;
+import com.galeshapley.config.distribution.CorrelatedDistributionConfig;
+import com.galeshapley.generation.PreferenceGenerationStrategy;
+import com.galeshapley.generation.UniformGenerationStrategy;
+import com.galeshapley.generation.CorrelatedGenerationStrategy;
 import com.galeshapley.model.Agent;
-import com.galeshapley.model.Proposer;
-import com.galeshapley.model.Proposee;
 
 import java.util.*;
 
 /**
- * Generates preference lists for agents using various strategies.
- * Supports random generation with configurable empty set placement.
+ * Generates preference lists for agents using various distribution strategies.
  */
 public class PreferenceGenerator {
     
+    private final PreferenceGenerationStrategy strategy;
     private final Random random;
-    private final boolean includeEmptySet;
-    private final EmptySetPlacement emptySetPlacement;
+    private final DistributionConfig config;
     
-    public enum EmptySetPlacement {
-        RANDOM,     // Place empty set at random position
-        FIRST,      // Place empty set as first preference
-        LAST,       // Place empty set as last preference
-        NONE        // Don't include empty set
-    }
-    
-    public PreferenceGenerator() {
-        this(new Random(), false, EmptySetPlacement.NONE);
-    }
-    
-    public PreferenceGenerator(long seed) {
-        this(new Random(seed), false, EmptySetPlacement.NONE);
-    }
-    
-    public PreferenceGenerator(Random random, boolean includeEmptySet, EmptySetPlacement emptySetPlacement) {
+    public PreferenceGenerator(DistributionConfig config, Random random) {
+        this.config = config;
         this.random = random;
-        this.includeEmptySet = includeEmptySet;
-        this.emptySetPlacement = emptySetPlacement;
+        this.strategy = createStrategy(config);
+    }
+    
+    public PreferenceGenerator(DistributionConfig config, long seed) {
+        this(config, new Random(seed));
+    }
+    
+    private PreferenceGenerationStrategy createStrategy(DistributionConfig config) {
+        if (config instanceof UniformDistributionConfig) {
+            return new UniformGenerationStrategy();
+        } else if (config instanceof CorrelatedDistributionConfig) {
+            return new CorrelatedGenerationStrategy((CorrelatedDistributionConfig) config);
+        } else {
+            throw new IllegalArgumentException("Unknown distribution type: " + config.getType());
+        }
     }
     
     /**
-     * Generate random preferences for proposers over proposees.
+     * Generate preferences for agents over candidates.
      */
     public <T extends Agent> List<String> generatePreferences(Collection<T> candidates, boolean withEmptySet) {
-        List<String> preferences = new ArrayList<>();
-        List<T> shuffledCandidates = new ArrayList<>(candidates);
-        Collections.shuffle(shuffledCandidates, random);
-        
-        // Convert to IDs
-        for (T candidate : shuffledCandidates) {
-            preferences.add(candidate.getId());
+        List<String> candidateIds = new ArrayList<>();
+        for (T candidate : candidates) {
+            candidateIds.add(candidate.getId());
         }
-        
-        // Add empty set if requested
-        if (withEmptySet || includeEmptySet) {
-            int emptySetPosition = determineEmptySetPosition(preferences.size());
-            preferences.add(emptySetPosition, "∅");
-        }
-        
-        return preferences;
+        return generatePreferencesFromIds(candidateIds, withEmptySet);
     }
     
     /**
-     * Generate random preferences using agent IDs.
+     * Generate preferences using agent IDs.
      */
     public List<String> generatePreferencesFromIds(Collection<String> candidateIds, boolean withEmptySet) {
-        List<String> preferences = new ArrayList<>(candidateIds);
-        Collections.shuffle(preferences, random);
-        
-        // Add empty set if requested
-        if (withEmptySet || includeEmptySet) {
-            int emptySetPosition = determineEmptySetPosition(preferences.size());
-            preferences.add(emptySetPosition, "∅");
-        }
-        
-        return preferences;
+        return strategy.generatePreferences(candidateIds, random, withEmptySet);
     }
     
     /**
-     * Generate preference configuration with random preferences for multiple agents.
+     * Generate preferences for multiple agents.
      */
     public Map<String, List<String>> generatePreferencesForAgents(
             Collection<String> agentIds, 
-            Collection<String> candidateIds, 
-            double emptySetProbability) {
+            Collection<String> candidateIds) {
         
         Map<String, List<String>> preferences = new HashMap<>();
+        double emptySetProbability = config.getEmptySetProbability();
         
         for (String agentId : agentIds) {
             boolean shouldIncludeEmptySet = random.nextDouble() < emptySetProbability;
@@ -94,38 +76,24 @@ public class PreferenceGenerator {
         return preferences;
     }
     
-    private int determineEmptySetPosition(int listSize) {
-        switch (emptySetPlacement) {
-            case FIRST:
-                return 0;
-            case LAST:
-                return listSize;
-            case RANDOM:
-                return random.nextInt(listSize + 1);
-            case NONE:
-            default:
-                throw new IllegalStateException("Empty set placement is NONE, but empty set was requested");
+    /**
+     * Create a preference generator with uniform distribution.
+     */
+    public static PreferenceGenerator uniform(double emptySetProbability, Long seed) {
+        UniformDistributionConfig config = new UniformDistributionConfig();
+        config.setEmptySetProbability(emptySetProbability);
+        config.setSeed(seed);
+        return seed != null ? new PreferenceGenerator(config, seed) : new PreferenceGenerator(config, new Random());
+    }
+    
+    /**
+     * Create a preference generator with correlated distribution.
+     */
+    public static PreferenceGenerator correlated(CorrelatedDistributionConfig config, Long seed) {
+        if (seed != null) {
+            config.setSeed(seed);
+            return new PreferenceGenerator(config, seed);
         }
-    }
-    
-    /**
-     * Create a preference generator with specific configuration.
-     */
-    public static PreferenceGenerator withConfig(boolean includeEmptySet, EmptySetPlacement placement, long seed) {
-        return new PreferenceGenerator(new Random(seed), includeEmptySet, placement);
-    }
-    
-    /**
-     * Create a preference generator for random generation.
-     */
-    public static PreferenceGenerator random(long seed) {
-        return new PreferenceGenerator(new Random(seed), false, EmptySetPlacement.NONE);
-    }
-    
-    /**
-     * Create a preference generator with random empty set placement.
-     */
-    public static PreferenceGenerator randomWithEmptySet(long seed) {
-        return new PreferenceGenerator(new Random(seed), true, EmptySetPlacement.RANDOM);
+        return new PreferenceGenerator(config, new Random());
     }
 }
