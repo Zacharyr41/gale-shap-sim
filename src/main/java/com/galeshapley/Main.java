@@ -3,20 +3,36 @@ package com.galeshapley;
 import com.galeshapley.algorithm.GaleShapleyAlgorithm;
 import com.galeshapley.config.SimulationConfig;
 import com.galeshapley.config.SimulationConfigLoader;
+import com.galeshapley.config.RuntimeOptions;
 import com.galeshapley.observer.ConsoleObserver;
 import com.galeshapley.observer.StatisticsObserver;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.File;
 import java.io.IOException;
 
+@SpringBootApplication
+@EnableConfigurationProperties(RuntimeOptions.class)
 public class Main {
     
     public static void main(String[] args) {
+        ConfigurableApplicationContext context = SpringApplication.run(Main.class, args);
+        
         try {
+            RuntimeOptions runtimeOptions = context.getBean(RuntimeOptions.class);
+            System.out.println("Runtime Options: " + runtimeOptions);
+            
             String configFile = "src/main/resources/example-config.yaml";
             
-            if (args.length > 0) {
-                configFile = args[0];
+            // Check for non-Spring arguments (config file path)
+            for (String arg : args) {
+                if (!arg.startsWith("--")) {
+                    configFile = arg;
+                    break;
+                }
             }
             
             System.out.println("Loading configuration from: " + configFile);
@@ -31,16 +47,18 @@ public class Main {
                 config.getEmptySetPreferences()
             );
             
-            ConsoleObserver consoleObserver = new ConsoleObserver(true);
+            ConsoleObserver consoleObserver = new ConsoleObserver(runtimeOptions.isDetailedLoggingEnabled());
             StatisticsObserver statisticsObserver = new StatisticsObserver();
             
             algorithm.addObserver(consoleObserver);
             algorithm.addObserver(statisticsObserver);
             
-            GaleShapleyAlgorithm.AlgorithmResult result = algorithm.execute();
+            GaleShapleyAlgorithm.AlgorithmResult result = algorithm.execute(runtimeOptions);
             
-            System.out.println("\n=== Statistics ===");
-            System.out.println(statisticsObserver.getStatistics());
+            if (runtimeOptions.isTrackIterationMetrics()) {
+                System.out.println("\n=== Statistics ===");
+                System.out.println(statisticsObserver.getStatistics());
+            }
             
         } catch (IOException e) {
             System.err.println("Error loading configuration: " + e.getMessage());
@@ -48,6 +66,8 @@ public class Main {
         } catch (Exception e) {
             System.err.println("Error running algorithm: " + e.getMessage());
             e.printStackTrace();
+        } finally {
+            context.close();
         }
     }
 }
