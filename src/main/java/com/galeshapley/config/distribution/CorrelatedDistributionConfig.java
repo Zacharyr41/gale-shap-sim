@@ -48,19 +48,20 @@ public class CorrelatedDistributionConfig extends DistributionConfig {
         
         if (popularityBias != null) {
             for (PopularityBias bias : popularityBias) {
-                if (bias.getWeight() <= 0) {
-                    throw new IllegalArgumentException("Popularity bias weights must be positive");
-                }
+                bias.validate();
             }
         }
     }
     
     /**
-     * Represents a popularity bias for a specific agent.
+     * Represents a popularity bias for specific agents or agent ranges.
      */
     public static class PopularityBias {
         @JsonProperty("agent")
         private String agent;
+        
+        @JsonProperty("agentRange")
+        private AgentRange agentRange;
         
         @JsonProperty("weight")
         private Double weight = 1.0;
@@ -73,6 +74,14 @@ public class CorrelatedDistributionConfig extends DistributionConfig {
             this.agent = agent;
         }
         
+        public AgentRange getAgentRange() {
+            return agentRange;
+        }
+        
+        public void setAgentRange(AgentRange agentRange) {
+            this.agentRange = agentRange;
+        }
+        
         public Double getWeight() {
             return weight;
         }
@@ -81,12 +90,123 @@ public class CorrelatedDistributionConfig extends DistributionConfig {
             this.weight = weight;
         }
         
+        /**
+         * Check if this bias applies to a specific agent ID.
+         */
+        public boolean appliesTo(String agentId) {
+            if (agent != null) {
+                return agent.equals(agentId);
+            }
+            if (agentRange != null) {
+                return agentRange.contains(agentId);
+            }
+            return false;
+        }
+        
+        public void validate() {
+            if (agent != null && agentRange != null) {
+                throw new IllegalArgumentException("PopularityBias cannot specify both 'agent' and 'agentRange'");
+            }
+            if (agent == null && agentRange == null) {
+                throw new IllegalArgumentException("PopularityBias must specify either 'agent' or 'agentRange'");
+            }
+            if (weight <= 0) {
+                throw new IllegalArgumentException("PopularityBias weight must be positive");
+            }
+        }
+        
         @Override
         public String toString() {
-            return "PopularityBias{" +
-                    "agent='" + agent + '\'' +
-                    ", weight=" + weight +
-                    '}';
+            if (agent != null) {
+                return "PopularityBias{agent='" + agent + "', weight=" + weight + '}';
+            } else if (agentRange != null) {
+                return "PopularityBias{agentRange=" + agentRange + ", weight=" + weight + '}';
+            }
+            return "PopularityBias{weight=" + weight + '}';
+        }
+    }
+    
+    /**
+     * Represents a range of agent IDs.
+     */
+    public static class AgentRange {
+        @JsonProperty("start")
+        private String start;
+        
+        @JsonProperty("end")
+        private String end;
+        
+        public String getStart() {
+            return start;
+        }
+        
+        public void setStart(String start) {
+            this.start = start;
+        }
+        
+        public String getEnd() {
+            return end;
+        }
+        
+        public void setEnd(String end) {
+            this.end = end;
+        }
+        
+        /**
+         * Check if an agent ID falls within this range.
+         * Assumes agent IDs have a consistent format (e.g., e1, e2, ..., e10).
+         */
+        public boolean contains(String agentId) {
+            if (start == null || end == null) {
+                return false;
+            }
+            
+            // Extract numeric parts for comparison
+            // Assumes format like "e1", "p10", etc. where prefix is consistent
+            try {
+                String startPrefix = extractPrefix(start);
+                String endPrefix = extractPrefix(end);
+                String agentPrefix = extractPrefix(agentId);
+                
+                // All must have the same prefix
+                if (!startPrefix.equals(endPrefix) || !startPrefix.equals(agentPrefix)) {
+                    return false;
+                }
+                
+                int startNum = extractNumber(start);
+                int endNum = extractNumber(end);
+                int agentNum = extractNumber(agentId);
+                
+                return agentNum >= startNum && agentNum <= endNum;
+                
+            } catch (NumberFormatException e) {
+                // Fallback to string comparison if numeric extraction fails
+                return agentId.compareTo(start) >= 0 && agentId.compareTo(end) <= 0;
+            }
+        }
+        
+        private String extractPrefix(String agentId) {
+            int i = 0;
+            while (i < agentId.length() && !Character.isDigit(agentId.charAt(i))) {
+                i++;
+            }
+            return i > 0 ? agentId.substring(0, i) : "";
+        }
+        
+        private int extractNumber(String agentId) {
+            int i = 0;
+            while (i < agentId.length() && !Character.isDigit(agentId.charAt(i))) {
+                i++;
+            }
+            if (i < agentId.length()) {
+                return Integer.parseInt(agentId.substring(i));
+            }
+            throw new NumberFormatException("No number found in agent ID: " + agentId);
+        }
+        
+        @Override
+        public String toString() {
+            return "AgentRange{start='" + start + "', end='" + end + "'}";
         }
     }
     

@@ -12,16 +12,12 @@ import java.util.stream.Collectors;
  */
 public class CorrelatedGenerationStrategy implements PreferenceGenerationStrategy {
     
-    private final Map<String, Double> popularityWeights;
+    private final List<PopularityBias> popularityBiases;
     private final double topPercentage;
     
     public CorrelatedGenerationStrategy(CorrelatedDistributionConfig config) {
-        this.popularityWeights = new HashMap<>();
-        if (config.getPopularityBias() != null) {
-            for (PopularityBias bias : config.getPopularityBias()) {
-                popularityWeights.put(bias.getAgent(), bias.getWeight());
-            }
-        }
+        this.popularityBiases = config.getPopularityBias() != null ? 
+            config.getPopularityBias() : new ArrayList<>();
         this.topPercentage = config.getTopPercentage() / 100.0; // Convert to fraction
     }
     
@@ -61,7 +57,7 @@ public class CorrelatedGenerationStrategy implements PreferenceGenerationStrateg
         // Calculate total weight
         double totalWeight = 0.0;
         for (String candidate : candidates) {
-            totalWeight += popularityWeights.getOrDefault(candidate, 1.0);
+            totalWeight += getWeightForCandidate(candidate);
         }
         
         // Generate random value and select based on weights
@@ -69,7 +65,7 @@ public class CorrelatedGenerationStrategy implements PreferenceGenerationStrateg
         double cumulativeWeight = 0.0;
         
         for (String candidate : candidates) {
-            cumulativeWeight += popularityWeights.getOrDefault(candidate, 1.0);
+            cumulativeWeight += getWeightForCandidate(candidate);
             if (randomValue <= cumulativeWeight) {
                 return candidate;
             }
@@ -77,6 +73,22 @@ public class CorrelatedGenerationStrategy implements PreferenceGenerationStrateg
         
         // Fallback (should not reach here)
         return candidates.get(candidates.size() - 1);
+    }
+    
+    /**
+     * Get the weight for a specific candidate based on all bias rules.
+     * If multiple rules apply, the highest weight is used.
+     */
+    private double getWeightForCandidate(String candidateId) {
+        double maxWeight = 1.0; // Default weight
+        
+        for (PopularityBias bias : popularityBiases) {
+            if (bias.appliesTo(candidateId)) {
+                maxWeight = Math.max(maxWeight, bias.getWeight());
+            }
+        }
+        
+        return maxWeight;
     }
     
     @Override

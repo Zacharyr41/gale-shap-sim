@@ -1,0 +1,136 @@
+simulation:
+  proposers:
+    - id: p1
+      name: Proposer1
+    - id: p2
+      name: Proposer2
+    - id: p3
+      name: Proposer3
+    - id: p4
+      name: Proposer4
+    - id: p5
+      name: Proposer5
+  proposees:
+    - id: e1
+      name: Proposee1
+    - id: e2
+      name: Proposee2  
+    - id: e3
+      name: Proposee3
+    - id: e4
+      name: Proposee4
+    - id: e5
+      name: Proposee5
+    - id: e6
+      name: Proposee6
+    - id: e7
+      name: Proposee7
+    - id: e8
+      name: Proposee8
+  proposerPreferences:
+    p1:
+      generator:
+        distribution:
+          type: correlated
+          popularityBias:
+            # Individual agent bias
+            - agent: e1
+              weight: 2.0
+            # Range-based bias - e3 through e5 should all have weight 3.0
+            - agentRange:
+                start: e3
+                end: e5
+              weight: 3.0
+            # Another individual agent
+            - agent: e8
+              weight: 1.5
+          topPercentage: 60
+          emptySetProbability: 0.0
+    p2:
+      generator:
+        distribution:
+          type: correlated
+          popularityBias:
+            # Different range bias
+            - agentRange:
+                start: e6
+                end: e8
+              weight: 4.0
+            - agent: e2
+              weight: 2.5
+          topPercentage: 50
+          emptySetProbability: 0.0
+    p3:
+      generator:
+        distribution:
+          type: correlated
+          popularityBias:
+            # Large range bias
+            - agentRange:
+                start: e1
+                end: e6
+              weight: 2.0
+          topPercentage: 75
+          emptySetProbability: 0.0
+    p4:
+      generator:
+        distribution:
+          type: correlated
+          popularityBias:
+            # Mix of individual and range
+            - agent: e1
+              weight: 5.0
+            - agentRange:
+                start: e4
+                end: e6
+              weight: 1.8
+            - agent: e8
+              weight: 3.2
+          topPercentage: 40
+          emptySetProbability: 0.0
+    p5:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.0
+  proposeePreferences:
+    e1:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.0
+    e2:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.0
+    e3:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.0
+    e4:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.0
+    e5:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.0
+    e6:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.0
+    e7:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.0
+    e8:
+      generator:
+        distribution:
+          type: uniform
+          emptySetProbability: 0.0
