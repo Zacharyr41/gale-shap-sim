@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
  * - Environment variables: GALESHAPLEY_MAXITERATIONS, GALESHAPLEY_ENABLEDETAILEDLOGGING, etc.
  * - Command line arguments: --galeshapley.maxIterations=1000, --galeshapley.enableDetailedLogging=true
  */
-@Component
 @ConfigurationProperties(prefix = "galeshapley")
 public class RuntimeOptions {
     private int maxIterations = Integer.MAX_VALUE;
