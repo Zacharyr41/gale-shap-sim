@@ -8,11 +8,13 @@ public class StatisticsObserver implements AlgorithmObserver {
     private int totalProposals = 0;
     private int totalAcceptances = 0;
     private int totalRejections = 0;
+    private int totalBrokenEngagements = 0; // When someone gets displaced by a better proposal
     private int totalIterationAttempts = 0; // Tracks all proposal attempts including those to empty sets
     private Map<Proposer, Integer> proposalCountByProposer = new HashMap<>();
     private Map<Proposer, Integer> rejectionCountByProposer = new HashMap<>();
     private Map<Proposer, Integer> iterationAttemptsByProposer = new HashMap<>();
     private Map<Proposee, Integer> proposalReceivedCount = new HashMap<>();
+    private Set<Proposer> previouslyMatchedProposers = new HashSet<>(); // Track who was previously matched
     private long startTime;
     private long endTime;
     
@@ -42,12 +44,18 @@ public class StatisticsObserver implements AlgorithmObserver {
     @Override
     public void onAcceptance(Proposer proposer, Proposee proposee) {
         totalAcceptances++;
+        previouslyMatchedProposers.add(proposer); // Track that this proposer has been matched
     }
     
     @Override
     public void onRejection(Proposer proposer, Proposee proposee) {
         totalRejections++;
         rejectionCountByProposer.merge(proposer, 1, Integer::sum);
+        
+        // If this proposer was previously matched, this is a broken engagement
+        if (previouslyMatchedProposers.contains(proposer)) {
+            totalBrokenEngagements++;
+        }
     }
     
     @Override
@@ -73,6 +81,7 @@ public class StatisticsObserver implements AlgorithmObserver {
         private final int totalProposals;
         private final int totalAcceptances;
         private final int totalRejections;
+        private final int totalBrokenEngagements;
         private final int totalIterationAttempts;
         private final Map<Proposer, Integer> proposalCountByProposer;
         private final Map<Proposer, Integer> rejectionCountByProposer;
@@ -84,6 +93,7 @@ public class StatisticsObserver implements AlgorithmObserver {
             this.totalProposals = observer.totalProposals;
             this.totalAcceptances = observer.totalAcceptances;
             this.totalRejections = observer.totalRejections;
+            this.totalBrokenEngagements = observer.totalBrokenEngagements;
             this.totalIterationAttempts = observer.totalIterationAttempts;
             this.proposalCountByProposer = new HashMap<>(observer.proposalCountByProposer);
             this.rejectionCountByProposer = new HashMap<>(observer.rejectionCountByProposer);
@@ -102,6 +112,10 @@ public class StatisticsObserver implements AlgorithmObserver {
         
         public int getTotalRejections() {
             return totalRejections;
+        }
+        
+        public int getTotalBrokenEngagements() {
+            return totalBrokenEngagements;
         }
         
         public int getTotalIterationAttempts() {
@@ -147,19 +161,28 @@ public class StatisticsObserver implements AlgorithmObserver {
         @Override
         public String toString() {
             return String.format(
-                "Statistics{\n" +
-                "  Total Iteration Attempts: %d\n" +
-                "  Total Proposals: %d\n" +
-                "  Total Acceptances: %d\n" +
-                "  Total Rejections: %d\n" +
-                "  Avg Iteration Attempts/Proposer: %.2f\n" +
-                "  Avg Proposals/Proposer: %.2f\n" +
-                "  Avg Rejections/Proposer: %.2f\n" +
-                "  Avg Proposals Received/Proposee: %.2f\n" +
-                "  Execution Time: %d ms\n" +
-                "}",
-                totalIterationAttempts, totalProposals, totalAcceptances, totalRejections,
-                getAverageIterationAttemptsPerProposer(),
+                "Algorithm Execution Statistics:\n" +
+                "══════════════════════════════════════════════════════════════════\n" +
+                "\n" +
+                "📊 PROPOSAL ACTIVITY:\n" +
+                "  • Meaningful Proposals Made: %d (actual romantic proposals)\n" +
+                "  • Proposals Accepted: %d (successful matches formed)\n" +
+                "  • Total Rejections: %d (all declined offers)\n" +
+                "    ├─ Broken Engagements: %d (displaced by better offer)\n" +
+                "    └─ Direct Rejections: %d (immediate 'no' without engagement)\n" +
+                "\n" +
+                "🔄 ALGORITHM MECHANICS:\n" +
+                "  • Total Decision Points: %d (includes evaluating 'stay single')\n" +
+                "\n" +
+                "📈 COMPETITION METRICS:\n" +
+                "  • Avg Proposals per Proposer: %.2f (how hard they had to try)\n" +
+                "  • Avg Rejections per Proposer: %.2f (how much competition faced)\n" +
+                "  • Avg Proposals per Proposee: %.2f (how popular/in-demand)\n" +
+                "\n" +
+                "⏱️  PERFORMANCE:\n" +
+                "  • Execution Time: %d ms\n",
+                totalProposals, totalAcceptances, totalRejections, totalBrokenEngagements, (totalRejections - totalBrokenEngagements),
+                totalIterationAttempts,
                 getAverageProposalsPerProposer(),
                 getAverageRejectionsPerProposer(),
                 getAverageProposalsReceivedPerProposee(),
