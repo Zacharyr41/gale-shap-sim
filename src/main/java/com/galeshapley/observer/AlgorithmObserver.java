@@ -15,6 +15,8 @@ public interface AlgorithmObserver {
     
     void onRejection(Proposer proposer, Proposee proposee);
     
+    void onBrokenEngagement(Proposer brokenUpWith, Proposee proposee, Proposer newProposer);
+    
     void onIterationEnd(int iteration, Matching currentMatching);
     
     void onAlgorithmComplete(Matching finalMatching, int totalIterations);
